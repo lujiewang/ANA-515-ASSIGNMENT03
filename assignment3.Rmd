@@ -1,0 +1,83 @@
+---
+title: "Assignment3"
+author: Lujie Wang
+date: 2022
+output: 
+  html_document:
+    theme: 
+      bootswatch: lumen 
+      thumbnails: true
+      lightbox: true
+      highlight: tango
+---
+
+```{r, include = TRUE}
+library(dplyr)
+library(tidyverse)
+add <- "/Users/lujiewang/Downloads/StormEvents_details-ftp_v1.0_d2021_c20220616.csv"
+data <- read_csv(add)
+```
+```{r, include = TRUE}
+myvars <- c("BEGIN_DATE_TIME", "END_DATE_TIME", "EPISODE_ID", "EVENT_ID", "STATE", "STATE_FIPS", "CZ_NAME", "CZ_TYPE","CZ_FIPS","EVENT_TYPE","SOURCE","BEGIN_LAT","BEGIN_LON","END_LAT","END_LON")
+new_data <- data[myvars]
+```
+
+
+```{r, include = TRUE}
+library(dplyr)
+new_data <- arrange(new_data, STATE)
+```
+
+```{r, include = TRUE}
+new_data$STATE <- str_to_title(new_data$STATE,locale = "en")
+
+```
+
+
+```{r, include = TRUE}
+
+newdata_filter <- filter(new_data, CZ_TYPE == "C")
+result <- select(newdata_filter , -CZ_TYPE)
+
+```
+
+
+```{r, include = TRUE}
+test_new <- new_data
+
+test_new$STATE_FIPS <- str_pad(test_new$STATE_FIPS, width = 3, side = "left", pad = "0")
+test_new$CZ_FIPS <- str_pad(test_new$CZ_FIPS, width = 3, side = "left", pad = "0")
+test_new<- unite(test_new,  "FIPS", c("CZ_FIPS", "STATE_FIPS"), sep='')
+test_new
+```
+
+
+```{r, include = TRUE}
+new_data <- rename_all(new_data, tolower)
+new_data
+```
+
+
+```{r, include = TRUE}
+us_state_info <- data.frame(state = state.name, region = state.region, area = state.area)
+us_state_info
+```
+
+```{r, include = TRUE}
+newset <- data.frame(table(new_data$state))
+newset<-rename(newset, c("state"="Var1"))
+merged <- merge(x = newset, y = us_state_info, by.x = "state", by.y = "state")
+merged
+```
+
+
+```{r, include = TRUE}
+library(ggplot2)
+storm_plot <- ggplot(merged, aes(x = area, y = Freq)) + geom_point(aes(color = region)) +
+  labs(x = "Land area (square miles)", 
+       y = "# of storm events in 2022")
+storm_plot
+```
+
+
+
